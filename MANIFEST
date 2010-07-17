@@ -1,0 +1,10 @@
+Build.PL
+lib/Fennec/Template.pm
+lib/Fennec/Template/Basic.pm
+lib/Fennec/Template/Runner.pm
+MANIFEST			This list of files
+META.yml
+README
+t/Fennec.t
+t/Fennec/Template.pm
+t/Fennec/Template/Basic.pm

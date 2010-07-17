@@ -1,0 +1,105 @@
+NAME
+    Fennec::Template - Test set and workflow templates that can be included
+    in any Fennec test.
+
+DESCRIPTION
+    This allows you to write fennec test files that act as templates instead
+    of being run independantly. These tests can be included in any Fennec
+    test much like a role or mixin. These test may contain workflows and
+    testsets, but not package level assertions. The test files that include
+    templates will run the test sets and worklfows from that template.
+
+    A template is identical to a fennec test file except that it uses
+    Fennec::Template instead of Fennec. You also may not include package
+    level tests. S() and M() refer to the templates meta data, and DO NOT
+    effect any packages that include the template. Use $self->fennec_meta()
+    to gain access to the test files meta data instead of the templates.
+
+TEMPLATE SYNOPSIS
+        package Fennec::Template::Basic;
+        use strict;
+        use warnings;
+
+        use Fennec::Template;
+
+        S({ name => 'My Template' });
+
+        # Load the package if the test's meta specifies one.
+        # Otherwise skip and provide a diag message explaining how to correct the
+        # issue.
+        tests load {
+            my $package = $self->fennec_meta->stash->{ testing };
+            if ( $package ) {
+                # This needs to be eval'd to prevent the begin_lift magic from
+                # running it too early.
+                eval 'require_ok( $package ); 1' || die( $@ );
+            }
+            else {
+                SKIP(
+                    sub { 1 },
+                    'Could not determine package to test, set: S( testing => $CLASS )',
+                );
+            }
+        }
+
+        1;
+
+USING THE TEMPLATE
+    In your Runner script (t/Fennec.t) you should use
+    'Fennec::Template::Runner'. Alternatively you can use it at the
+    beginning of any test file that needs templates. You may also load this
+    for Fennec::Standalone tests.
+
+    There are 2 ways to use a template in a test.
+
+    Include a template globaly
+        In your t/Fennec.t file:
+
+            ...
+            use Fennec::Template::Runner;
+            'Fennec::Runner'->init(
+                ...
+                templates => \@Template_Package_List,
+            );
+            ...
+
+    Include a template in a specific test only
+        t/Some/Test.pm
+
+            ...
+            use Fennec::Template::Runner; # Or put this in t/Fennec.t
+            S( templates => \@Template_Package_List )
+            ...
+
+CAVEATS AND PITFALLS
+    No package level tests
+        This will not work like you expect:
+
+            use strict;
+            use warnings;
+            use Fennec::Template;
+
+            ok( 1, "This will not appy to test files." );
+
+    S() and M() are for the template, not the test file
+        S() and M() refer to the templates meta data, and DO NOT effect any
+        packages that include the template. Use $self->fennec_meta() to gain
+        access to the test files meta data instead of the templates.
+
+INCLUDED TEMPLATES
+    Fennec::Template::Basic
+        The basic template, used to require_ok the package you are testing.
+
+AUTHORS
+    Chad Granum exodist7@gmail.com
+
+COPYRIGHT
+    Copyright (C) 2010 Chad Granum
+
+    Fennec-Template is free software; Standard perl licence.
+
+    Fennec-Template is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the license for
+    more details.
+
